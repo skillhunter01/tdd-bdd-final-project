@@ -27,7 +27,7 @@ import os
 import logging
 import unittest
 from decimal import Decimal
-from service.models import Product, Category, db
+from service.models import Product, Category, db, DataValidationError
 from service import app
 from tests.factories import ProductFactory
 
@@ -82,6 +82,7 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(product.price, 12.50)
         self.assertEqual(product.category, Category.CLOTHS)
 
+    def test_add_a_product(self):
         """It should Create a product and add it to the database"""
         products = Product.all()
         self.assertEqual(products, [])
@@ -179,3 +180,49 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(found.count(), count)
         for product in found:
             self.assertEqual(product.category, category)
+
+    def test_deserialize_invalid_attribute(self):
+        """It should not deserialize a Product with invalid attribute"""
+        data = {
+            "name": "Shirt",
+            "description": "Cotton shirt",
+            "price": "10.00",
+            "available": True,
+            "category": "INVALID_CATEGORY"  # Invalid category enum value
+        }
+        product = Product()
+        self.assertRaises(DataValidationError, product.deserialize, data)
+
+    def test_deserialize_bad_available(self):
+        """It should not deserialize a Product with bad available data"""
+        data = {"name": "shirt", "description": "cotton", "price": "10.00",
+                "available": "true", "category": "CLOTHS"}
+        product = Product()
+        self.assertRaises(DataValidationError, product.deserialize, data)
+
+    def test_deserialize_bad_type(self):
+        """It should not deserialize a Product with bad data type"""
+        data = "this is not a dictionary"
+        product = Product()
+        self.assertRaises(DataValidationError, product.deserialize, data)
+
+    def test_find_by_price_string(self):
+        """It should Find Products by Price as string"""
+        product = ProductFactory()
+        product.create()
+        price = str(product.price)
+        found = Product.find_by_price(price)
+        self.assertEqual(found[0].price, Decimal(price))
+
+    def test_find_by_price_decimal(self):
+        """It should Find Products by Price as decimal"""
+        product = ProductFactory()
+        product.create()
+        found = Product.find_by_price(product.price)
+        self.assertEqual(found[0].price, product.price)
+
+    def test_update_without_id(self):
+        """It should raise error when updating without id"""
+        product = ProductFactory()
+        product.id = None
+        self.assertRaises(DataValidationError, product.update)

@@ -20,7 +20,7 @@ Product Store Service with UI
 """
 from flask import jsonify, request, abort
 from flask import url_for  # noqa: F401 pylint: disable=unused-import
-from service.models import Product
+from service.models import Product, Category
 from service.common import status  # HTTP Status Codes
 from . import app
 
@@ -97,27 +97,39 @@ def create_products():
 ######################################################################
 # L I S T   A L L   P R O D U C T S
 ######################################################################
+######################################################################
+# LIST PRODUCTS
+######################################################################
 @app.route("/products", methods=["GET"])
 def list_products():
-    """List Products"""
+    """Returns a list of Products"""
     app.logger.info("Request to list Products...")
+
     products = []
-    
-    category = request.args.get("category")
     name = request.args.get("name")
+    category = request.args.get("category")
     available = request.args.get("available")
-    
-    if category:
-        products = Product.find_by_category(getattr(Category, category))
-    elif name:
+
+    if name:
+        app.logger.info("Find by name: %s", name)
         products = Product.find_by_name(name)
-    elif available is not None:
-        products = Product.find_by_availability(available.lower() == "true")
+    elif category:
+        app.logger.info("Find by category: %s", category)
+        # create enum from string
+        category_value = getattr(Category, category.upper())
+        products = Product.find_by_category(category_value)
+    elif available:
+        app.logger.info("Find by available: %s", available)
+        # create bool from string
+        available_value = available.lower() in ["true", "yes", "1"]
+        products = Product.find_by_availability(available_value)
     else:
+        app.logger.info("Find all")
         products = Product.all()
-        
+
     results = [product.serialize() for product in products]
-    return jsonify(results), status.HTTP_200_OK
+    app.logger.info("[%s] Products returned", len(results))
+    return results, status.HTTP_200_OK
 
 ######################################################################
 # R E A D   A   P R O D U C T

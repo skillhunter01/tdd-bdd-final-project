@@ -222,7 +222,7 @@ class TestProductRoutes(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), 0)
-    
+
     def test_list_by_name(self):
         """It should List products by name"""
         products = self._create_products(5)
@@ -234,7 +234,7 @@ class TestProductRoutes(TestCase):
         self.assertEqual(len(data), len(name_products))
         for product in data:
             self.assertEqual(product["name"], test_name)
-    
+
     def test_list_by_category(self):
         """It should List products by category"""
         products = self._create_products(5)

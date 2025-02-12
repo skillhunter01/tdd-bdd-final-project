@@ -135,6 +135,7 @@ def list_products():
 # R E A D   A   P R O D U C T
 ######################################################################
 
+
 @app.route("/products/<int:product_id>", methods=["GET"])
 def get_products(product_id):
     """
@@ -150,6 +151,7 @@ def get_products(product_id):
 ######################################################################
 # U P D A T E   A   P R O D U C T
 ######################################################################
+
 
 @app.route("/products/<int:product_id>", methods=["PUT"])
 def update_products(product_id):
@@ -169,6 +171,7 @@ def update_products(product_id):
 # D E L E T E   A   P R O D U C T
 ######################################################################
 
+
 @app.route("/products/<int:product_id>", methods=["DELETE"])
 def delete_products(product_id):
     """Delete a Product"""
@@ -178,4 +181,3 @@ def delete_products(product_id):
         abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
     product.delete()
     return "", status.HTTP_204_NO_CONTENT
-

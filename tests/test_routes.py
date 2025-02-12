@@ -207,6 +207,57 @@ class TestProductRoutes(TestCase):
         """It should not Delete a Product that's not found"""
         response = self.client.delete(f"{BASE_URL}/0")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_list_products(self):
+        """It should List all Products"""
+        products = self._create_products(5)
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), len(products))
+
+    def test_list_empty_products(self):
+        """It should return empty list when no Products exist"""
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 0)
+    
+    def test_list_by_name(self):
+        """It should List products by name"""
+        products = self._create_products(5)
+        test_name = products[0].name
+        name_products = [product for product in products if product.name == test_name]
+        response = self.client.get(f"{BASE_URL}?name={test_name}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), len(name_products))
+        for product in data:
+            self.assertEqual(product["name"], test_name)
+    
+    def test_list_by_category(self):
+        """It should List products by category"""
+        products = self._create_products(5)
+        test_category = products[0].category
+        category_products = [p for p in products if p.category == test_category]
+        response = self.client.get(f"{BASE_URL}?category={test_category.name}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), len(category_products))
+        for product in data:
+            self.assertEqual(product["category"], test_category.name)
+
+    def test_list_by_availability(self):
+        """It should List products by availability"""
+        products = self._create_products(5)
+        test_available = products[0].available
+        available_products = [p for p in products if p.available == test_available]
+        response = self.client.get(f"{BASE_URL}?available={test_available}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), len(available_products))
+        for product in data:
+            self.assertEqual(product["available"], test_available)
     ######################################################################
     # Utility functions
     ######################################################################

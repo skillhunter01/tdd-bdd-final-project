@@ -97,10 +97,27 @@ def create_products():
 ######################################################################
 # L I S T   A L L   P R O D U C T S
 ######################################################################
-
-#
-# PLACE YOUR CODE TO LIST ALL PRODUCTS HERE
-#
+@app.route("/products", methods=["GET"])
+def list_products():
+    """List Products"""
+    app.logger.info("Request to list Products...")
+    products = []
+    
+    category = request.args.get("category")
+    name = request.args.get("name")
+    available = request.args.get("available")
+    
+    if category:
+        products = Product.find_by_category(getattr(Category, category))
+    elif name:
+        products = Product.find_by_name(name)
+    elif available is not None:
+        products = Product.find_by_availability(available.lower() == "true")
+    else:
+        products = Product.all()
+        
+    results = [product.serialize() for product in products]
+    return jsonify(results), status.HTTP_200_OK
 
 ######################################################################
 # R E A D   A   P R O D U C T
@@ -149,3 +166,4 @@ def delete_products(product_id):
         abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
     product.delete()
     return "", status.HTTP_204_NO_CONTENT
+
